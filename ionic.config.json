@@ -1,0 +1,7 @@
+{
+  "name": "japanese-ebook-reader-ionic",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue"
+}
