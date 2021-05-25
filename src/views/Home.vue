@@ -1,38 +1,48 @@
 <template>
   <ion-page>
-    <ion-header :translucent="true">
+    <!-- <ion-header :translucent="true">
       <ion-toolbar>
         <ion-title>Blank</ion-title>
       </ion-toolbar>
-    </ion-header>
+    </ion-header> -->
     
     <ion-content :fullscreen="true">
-      <ion-header collapse="condense">
-        <ion-toolbar>
-          <ion-title size="large">Blank</ion-title>
-        </ion-toolbar>
-      </ion-header>
-    
-      <div id="container">
-        <strong>Ready to create an app?</strong>
-        <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
-      </div>
+  <div id="ebook-viewer" onclick="selectionChanged()">
+サンタクロースをいつまで信じていたかなんてことはたわいもない世間話にもならないくらいのどうでもいいような話だが、
+それでも俺がいつまでサンタなどという想像上の赤服じーさんを信じていたかと言うとこれは確信をもって言えるが最初から信じてなどいなかった。
+幼稚園《ようちえん》のクリスマスイベントに現れたサンタは偽《にせ》サンタだと理解していたし、記憶《きおく》をたどると周囲にいた園児たちも
+あれが本物だとは思っていないような目つきでサンタのコスプレをした園長先生を眺《なが》めていたように思う。そんなこんなでオフクロがサンタにキスして
+いるところを目撃《もくげき》したわけでもないのにクリスマスにしか仕事をしないジジイの存在を疑っていた賢《さか》しい俺なのだが、宇宙人
+や未来人や幽霊《ゆうれい》や妖怪《ようかい》や超能力《ちょうのうりょく》や悪の組織やそれらと戦うアニメ的｜
+特撮《とくさつ》的漫画的ヒーローたちがこの世に存在しないのだということに気付いたのは相当後になってからだった。
+いや、本当は気付いていたのだろう。ただ気付きたくなかっただけなのだ。俺は心の底から宇宙人や未来人や幽霊や妖怪
+や超能力や悪の組織が目の前にふらりと出てきてくれることを望んでいたのだ。</div>
+  <div class="button-bar">
+    <button id="btnPageUp" style="flex-grow: 1;">⇑</button>
+    <button id="btnScrollUp" style="flex-grow: 4;">↑</button>
+    <button id="btnScrollDown" style="flex-grow: 4;">↓</button>
+    <button id="btnPageDown" style="flex-grow: 1;">⇓</button>
+  </div>
+  <div id="completion-indicator">
+  </div>
+  <iframe id="integrated-japanese-dictionary-popup" src="https://japanese-dictionary-iframe.herokuapp.com">
+  </iframe>
     </ion-content>
   </ion-page>
 </template>
 
 <script lang="ts">
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/vue';
+import { IonContent, IonPage } from '@ionic/vue';
 import { defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'Home',
   components: {
     IonContent,
-    IonHeader,
+    // IonHeader,
     IonPage,
-    IonTitle,
-    IonToolbar
+    // IonTitle,
+    // IonToolbar
   }
 });
 </script>
