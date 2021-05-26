@@ -181,7 +181,7 @@ export default defineComponent({
 </script>
 
 <style scoped>
-body {
+#ebook-viewer {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
@@ -191,9 +191,7 @@ body {
 
   background-color: #000000;
   color: white;
-}
 
-#ebook-viewer {
   white-space: pre-wrap;
   overflow-wrap: break-word;
   position: fixed;
@@ -222,6 +220,7 @@ body {
 }
 
 #completion-indicator {
+  color: white;
   position: fixed;
   top: 50%;
   right: 30px;
