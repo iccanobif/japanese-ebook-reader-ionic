@@ -1,22 +1,14 @@
 <template>
   <ion-page>
-    <!-- <ion-header :translucent="true">
-      <ion-toolbar>
-        <ion-title>Blank</ion-title>
-      </ion-toolbar>
-    </ion-header> -->
-
     <ion-content :fullscreen="true">
       <div id="ebook-viewer">
-        サンタクロースをいつまで信じていたかなんてことはたわいもない世間話にもならないくらいのどうでもいいような話だが、
-        それでも俺がいつまでサンタなどという想像上の赤服じーさんを信じていたかと言うとこれは確信をもって言えるが最初から信じてなどいなかった。
-        幼稚園《ようちえん》のクリスマスイベントに現れたサンタは偽《にせ》サンタだと理解していたし、記憶《きおく》をたどると周囲にいた園児たちも
-        あれが本物だとは思っていないような目つきでサンタのコスプレをした園長先生を眺《なが》めていたように思う。そんなこんなでオフクロがサンタにキスして
-        いるところを目撃《もくげき》したわけでもないのにクリスマスにしか仕事をしないジジイの存在を疑っていた賢《さか》しい俺なのだが、宇宙人
-        や未来人や幽霊《ゆうれい》や妖怪《ようかい》や超能力《ちょうのうりょく》や悪の組織やそれらと戦うアニメ的｜
-        特撮《とくさつ》的漫画的ヒーローたちがこの世に存在しないのだということに気付いたのは相当後になってからだった。
-        いや、本当は気付いていたのだろう。ただ気付きたくなかっただけなのだ。俺は心の底から宇宙人や未来人や幽霊や妖怪
-        や超能力や悪の組織が目の前にふらりと出てきてくれることを望んでいたのだ。
+        <span
+          v-for="(character, index) in text.split('')"
+          :key="index"
+          v-on:click="onCharacterClick(index)"
+        >
+          {{ character }}
+        </span>
       </div>
       <div class="button-bar">
         <button id="btnPageUp" style="flex-grow: 1">⇑</button>
@@ -37,17 +29,27 @@
 <script lang="ts">
 import { IonContent, IonPage } from "@ionic/vue";
 import { defineComponent } from "vue";
+import { text } from "../haruhi01"
 
 export default defineComponent({
   name: "Home",
   components: {
     IonContent,
-    // IonHeader,
     IonPage,
-    // IonTitle,
-    // IonToolbar
   },
-  mounted: () => {
+  data() {
+    return {
+      loadingText: false,
+      // text: "もしかして世のブログって皆金掛かってると思ってたのか",
+      text: text,
+    };
+  },
+  async mounted() {
+
+    // const response = await fetch("https://www.iccan.us/japanese-ebooks/01%20%E6%B6%BC%E5%AE%AE%E3%83%8F%E3%83%AB%E3%83%92%E3%81%AE%E6%86%82%E9%AC%B1%20(%E6%A0%A1%E6%AD%A311-09-02).txt")
+    // this.text = await response.text()
+    // this.loadingText = true
+
     const viewer = document.getElementById("ebook-viewer");
     const completionIndicator = document.getElementById("completion-indicator");
     const btnPageUp = document.getElementById("btnPageUp");
@@ -142,13 +144,22 @@ export default defineComponent({
       }
     }, 50);
 
-    const selectionChanged = () => {
+    const scrollPositionFromStorage = window.localStorage.getItem("scroll-top");
+    if (scrollPositionFromStorage)
+      viewer.scrollTo({ top: Number(scrollPositionFromStorage), left: 0 });
+
+    updateCompletionIndictator();
+  },
+  methods: {
+    onCharacterClick(index) {
+      console.log(index);
+
       const selection = window.getSelection();
 
-      console.log(selection)
+      console.log(selection);
 
-      let text = selection.anchorNode.textContent;
-      let offset = selection.anchorOffset;
+      let text = this.text;
+      let offset = index;
 
       if (offset > 50) {
         text = text.substring(offset - 25, offset + 25);
@@ -164,15 +175,7 @@ export default defineComponent({
         { text, offset },
         "https://japanese-dictionary-iframe.herokuapp.com"
       );
-    }
-
-    document.getElementById("ebook-viewer").addEventListener("click", selectionChanged)
-
-    const scrollPositionFromStorage = window.localStorage.getItem("scroll-top");
-    if (scrollPositionFromStorage)
-      viewer.scrollTo({ top: Number(scrollPositionFromStorage), left: 0 });
-
-    updateCompletionIndictator();
+    },
   },
 });
 </script>
