@@ -8,7 +8,8 @@
     "test:unit": "vue-cli-service test:unit",
     "test:e2e": "vue-cli-service test:e2e",
     "lint": "vue-cli-service lint",
-    "run-device": "ionic capacitor run android -l --host=192.168.1.2"
+    "run-device": "ionic capacitor run android -l --host=192.168.1.2",
+    "build-device": "ionic capacitor build android --prod --release"
   },
   "dependencies": {
     "@capacitor/android": "3.0.0",
