@@ -2,13 +2,15 @@
   <ion-page>
     <ion-content :fullscreen="true">
       <div id="ebook-viewer">
-        <span
-          v-for="(character, index) in text.split('')"
-          :key="index"
-          v-on:click="onCharacterClick(index)"
-        >
-          {{ character }}
-        </span>
+        <div v-for="(line, lineIndex) in text.split('\n')" :key="lineIndex">
+          <span
+            v-for="(character, characterIndex) in line.split('')"
+            :key="characterIndex"
+            v-on:click="onCharacterClick(line, characterIndex)"
+          >
+            {{ character }}
+          </span>
+        </div>
       </div>
       <div class="button-bar">
         <button id="btnPageUp" style="flex-grow: 1">⇑</button>
@@ -146,7 +148,7 @@ export default defineComponent({
       }
     }, 50);
 
-    // TODO sta roba non funziona, viene sempre eseguita prima che 
+    // TODO sta roba non funziona, viene sempre eseguita prima che
     // il testo sia renderizzato
     this.$nextTick(() => {
       const scrollPositionFromStorage = window.localStorage.getItem(
@@ -159,14 +161,13 @@ export default defineComponent({
     });
   },
   methods: {
-    onCharacterClick(index) {
-      console.log(index);
+    onCharacterClick(text: string, index: number) {
+      console.log(text, index);
 
       const selection = window.getSelection();
 
       console.log(selection);
 
-      let text = this.text;
       let offset = index;
 
       if (offset > 50) {
