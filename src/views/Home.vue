@@ -29,7 +29,7 @@
 <script lang="ts">
 import { IonContent, IonPage } from "@ionic/vue";
 import { defineComponent } from "vue";
-import { text } from "../haruhi01"
+import { text } from "../haruhi01";
 
 export default defineComponent({
   name: "Home",
@@ -45,7 +45,6 @@ export default defineComponent({
     };
   },
   async mounted() {
-
     // const response = await fetch("https://www.iccan.us/japanese-ebooks/01%20%E6%B6%BC%E5%AE%AE%E3%83%8F%E3%83%AB%E3%83%92%E3%81%AE%E6%86%82%E9%AC%B1%20(%E6%A0%A1%E6%AD%A311-09-02).txt")
     // this.text = await response.text()
     // this.loadingText = true
@@ -130,8 +129,11 @@ export default defineComponent({
     });
 
     function updateCompletionIndictator() {
-      completionIndicator.innerText =
-        Math.round((viewer.scrollTop / viewer.scrollHeight) * 1000) / 10 + "%";
+      if (!viewer.scrollHeight) completionIndicator.innerText = "0%";
+      else
+        completionIndicator.innerText =
+          Math.round((viewer.scrollTop / viewer.scrollHeight) * 1000) / 10 +
+          "%";
     }
 
     setInterval(() => {
@@ -144,11 +146,17 @@ export default defineComponent({
       }
     }, 50);
 
-    const scrollPositionFromStorage = window.localStorage.getItem("scroll-top");
-    if (scrollPositionFromStorage)
-      viewer.scrollTo({ top: Number(scrollPositionFromStorage), left: 0 });
+    // TODO sta roba non funziona, viene sempre eseguita prima che 
+    // il testo sia renderizzato
+    this.$nextTick(() => {
+      const scrollPositionFromStorage = window.localStorage.getItem(
+        "scroll-top"
+      );
+      if (scrollPositionFromStorage)
+        viewer.scrollTo({ top: Number(scrollPositionFromStorage), left: 0 });
 
-    updateCompletionIndictator();
+      updateCompletionIndictator();
+    });
   },
   methods: {
     onCharacterClick(index) {
