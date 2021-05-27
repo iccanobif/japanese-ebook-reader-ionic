@@ -47,10 +47,6 @@ export default defineComponent({
     };
   },
   async mounted() {
-    // const response = await fetch("https://www.iccan.us/japanese-ebooks/01%20%E6%B6%BC%E5%AE%AE%E3%83%8F%E3%83%AB%E3%83%92%E3%81%AE%E6%86%82%E9%AC%B1%20(%E6%A0%A1%E6%AD%A311-09-02).txt")
-    // this.text = await response.text()
-    // this.loadingText = true
-
     const viewer = document.getElementById("ebook-viewer");
     const completionIndicator = document.getElementById("completion-indicator");
     const btnPageUp = document.getElementById("btnPageUp");
@@ -139,6 +135,18 @@ export default defineComponent({
     }
 
     setInterval(() => {
+      const scrollPositionFromStorage = window.localStorage.getItem(
+        "scroll-top"
+      );
+
+      // If the app has just been opened but the saved scroll position still hasn't been applied, apply it.
+      if (scrollPositionFromStorage && !viewer.scrollTop)
+      {
+        viewer.scrollTo({ top: Number(scrollPositionFromStorage), left: 0 });
+        updateCompletionIndictator();
+      }
+
+
       if (scrollSpeed != 0) {
         if (scrollFramesToSkip > 0) scrollFramesToSkip--;
         else {
@@ -148,17 +156,6 @@ export default defineComponent({
       }
     }, 50);
 
-    // TODO sta roba non funziona, viene sempre eseguita prima che
-    // il testo sia renderizzato
-    this.$nextTick(() => {
-      const scrollPositionFromStorage = window.localStorage.getItem(
-        "scroll-top"
-      );
-      if (scrollPositionFromStorage)
-        viewer.scrollTo({ top: Number(scrollPositionFromStorage), left: 0 });
-
-      updateCompletionIndictator();
-    });
   },
   methods: {
     onCharacterClick(text: string, index: number) {
