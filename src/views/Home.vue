@@ -1,6 +1,7 @@
 <template>
   <ion-page>
     <ion-content :fullscreen="true">
+      <input type="file" id="file-input" />
       <div id="ebook-viewer">
         <div v-for="(line, lineIndex) in text.split('\n')" :key="lineIndex">
           <span
@@ -13,7 +14,9 @@
         </div>
       </div>
       <div class="button-bar">
-        <button id="openFile" v-on:click="openNewFile()" style="flex-grow: 1">F</button>
+        <button id="openFile" v-on:click="openNewFile()" style="flex-grow: 1">
+          A
+        </button>
         <button id="btnPageUp" style="flex-grow: 1">⇑</button>
         <button id="btnScrollUp" style="flex-grow: 4">↑</button>
         <button id="btnScrollDown" style="flex-grow: 4">↓</button>
@@ -33,7 +36,8 @@
 import { IonContent, IonPage } from "@ionic/vue";
 import { defineComponent } from "vue";
 import { text } from "../haruhi01";
-import { FileChooser } from '@ionic-native/file-chooser';
+import { FileChooser } from "@ionic-native/file-chooser";
+import { File, IFile } from "@ionic-native/file";
 
 export default defineComponent({
   name: "Home",
@@ -49,6 +53,33 @@ export default defineComponent({
     };
   },
   async mounted() {
+    (async function () {
+      console.log("opening");
+      const uri = await FileChooser.open();
+
+      console.log("uri", uri);
+      console.log("File.dataDirectory", File.dataDirectory);
+      const entry = await File.resolveLocalFilesystemUrl(uri);
+      console.log("entry", entry);
+
+      console.log("entry.fullPath", entry.fullPath);
+
+      // "/com.android.providers.downloads.documents/document/6451"
+
+      try {
+        File.readAsArrayBuffer(
+          "/com.android.providers.downloadsfdsfdsfsdf.documents/document/",
+          "6451 zzz "
+        )
+          .then((value) => {
+            console.log(value);
+          })
+          .catch((err) => console.error(err));
+      } catch (exc) {
+        console.error(exc);
+      }
+    });
+
     const viewer = document.getElementById("ebook-viewer");
     const completionIndicator = document.getElementById("completion-indicator");
     const btnPageUp = document.getElementById("btnPageUp");
@@ -137,17 +168,14 @@ export default defineComponent({
     }
 
     setInterval(() => {
-      const scrollPositionFromStorage = window.localStorage.getItem(
-        "scroll-top"
-      );
+      const scrollPositionFromStorage =
+        window.localStorage.getItem("scroll-top");
 
       // If the app has just been opened but the saved scroll position still hasn't been applied, apply it.
-      if (scrollPositionFromStorage && !viewer.scrollTop)
-      {
+      if (scrollPositionFromStorage && !viewer.scrollTop) {
         viewer.scrollTo({ top: Number(scrollPositionFromStorage), left: 0 });
         updateCompletionIndictator();
       }
-
 
       if (scrollSpeed != 0) {
         if (scrollFramesToSkip > 0) scrollFramesToSkip--;
@@ -157,7 +185,6 @@ export default defineComponent({
         }
       }
     }, 50);
-
   },
   methods: {
     onCharacterClick(text: string, index: number) {
@@ -184,12 +211,47 @@ export default defineComponent({
         "https://japanese-dictionary-iframe.herokuapp.com"
       );
     },
-    openNewFile()
-    {
-      console.log("opening")
-      FileChooser.open().then((res) => {
-        console.log(res)
-      })
+    async openNewFile() {
+      console.log("opening");
+      const element = document.getElementById("file-input") as HTMLInputElement;
+
+      const file = element.files[0];
+
+      if (!file) {
+        alert("seleziona un file");
+        return;
+      }
+
+      console.log(file);
+
+      const reader = new FileReader();
+
+      reader.onloadend = function () {
+        console.log("Successful file read: " + this.result);
+        // displayFileData(fileEntry.fullPath + ": " + this.result);
+      };
+      reader.onerror = (ev) => {
+        console.error(ev);
+      };
+
+      reader.readAsText(file);
+
+      // const reader = new FileReader();
+      // reader.addEventListener('load', (event) => {
+      //     // img.src = event.target.result;
+      //     console.log(event)
+      //   });
+      // reader.readAsArrayBuffer(file);
+
+      // const uri = await FileChooser.open();
+
+      // console.log(uri);
+      // console.log(File.dataDirectory);
+      // const entry = await File.resolveLocalFilesystemUrl(uri);
+      // console.log(entry);
+      // const reader = new FileReader()
+      // const string = await File.readAsText(uri, "nomefile.txt")
+      // reader.readAsText(, "utf8")
     },
   },
 });
@@ -253,8 +315,15 @@ export default defineComponent({
   border-left: 0;
   border-bottom: solid 2px;
   border-right: 0;
-  z-index: 2147483647;
+  z-index: 10;
   background-color: black;
+}
+
+input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 50;
 }
 </style>
 
