@@ -38,7 +38,7 @@ import { defineComponent } from "vue";
 import { text } from "../haruhi01";
 import { FileChooser } from "@ionic-native/file-chooser";
 import { File } from "@ionic-native/file";
-import isUtf8 from "is-utf8"
+import isUtf8 from "is-utf8";
 
 export default defineComponent({
   name: "Home",
@@ -225,36 +225,36 @@ export default defineComponent({
 
       console.log(file);
 
-    //   function toArrayBuffer(buf: Buffer) {
-    //     var ab = new ArrayBuffer(buf.length);
-    //     var view = new Uint8Array(ab);
-    //     for (var i = 0; i < buf.length; ++i) {
-    //         view[i] = buf[i];
-    //     }
-    //     return ab;
-    // }
+      //   function toArrayBuffer(buf: Buffer) {
+      //     var ab = new ArrayBuffer(buf.length);
+      //     var view = new Uint8Array(ab);
+      //     for (var i = 0; i < buf.length; ++i) {
+      //         view[i] = buf[i];
+      //     }
+      //     return ab;
+      // }
 
-    function toBuffer(ab: ArrayBuffer) {
+      function toBuffer(ab: ArrayBuffer) {
         const buf = Buffer.alloc(ab.byteLength);
         const view = new Uint8Array(ab);
         for (let i = 0; i < buf.length; ++i) {
-            buf[i] = view[i];
+          buf[i] = view[i];
         }
         return buf;
-    }
+      }
 
       const reader = new FileReader();
 
       reader.onloadend = function () {
         console.log("Successful file read: " + this.result);
-        const arrBuff = this.result as ArrayBuffer
-        
-        
-        const td = isUtf8(toBuffer(arrBuff)) ? new TextDecoder("utf8") : new TextDecoder("shift-jis")
-        const text = td.decode(arrBuff)
+        const arrBuff = this.result as ArrayBuffer;
 
-        console.log(text)
-        
+        const td = isUtf8(toBuffer(arrBuff))
+          ? new TextDecoder("utf8")
+          : new TextDecoder("shift-jis");
+        const text = td.decode(arrBuff);
+
+        console.log(text.substr(0, 10));
       };
       reader.onerror = (ev) => {
         console.error(ev);
