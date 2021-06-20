@@ -37,8 +37,21 @@ import { IonContent, IonPage } from "@ionic/vue";
 import { defineComponent } from "vue";
 import { text } from "../haruhi01";
 import { FileChooser } from "@ionic-native/file-chooser";
-import { File } from "@ionic-native/file";
+import {
+  File,
+  IFile,
+  // FileReader
+} from "@ionic-native/file";
 import isUtf8 from "is-utf8";
+
+function toBuffer(ab: ArrayBuffer) {
+  const buf = Buffer.alloc(ab.byteLength);
+  const view = new Uint8Array(ab);
+  for (let i = 0; i < buf.length; ++i) {
+    buf[i] = view[i];
+  }
+  return buf;
+}
 
 export default defineComponent({
   name: "Home",
@@ -55,31 +68,50 @@ export default defineComponent({
   },
   async mounted() {
     (async function () {
-      console.log("opening");
-      const uri = await FileChooser.open();
-
-      console.log("uri", uri);
-      console.log("File.dataDirectory", File.dataDirectory);
-      const entry = await File.resolveLocalFilesystemUrl(uri);
-      console.log("entry", entry);
-
-      console.log("entry.fullPath", entry.fullPath);
-
-      // "/com.android.providers.downloads.documents/document/6451"
-
-      try {
-        File.readAsArrayBuffer(
-          "/com.android.providers.downloadsfdsfdsfsdf.documents/document/",
-          "6451 zzz "
-        )
-          .then((value) => {
-            console.log(value);
-          })
-          .catch((err) => console.error(err));
-      } catch (exc) {
-        console.error(exc);
+      function getData(): Promise<ArrayBuffer> {
+        return new Promise<ArrayBuffer>((resolve, reject) => {
+          FileChooser.open().then((url) => {
+            (window as any).resolveLocalFileSystemURL(url, (res) => {
+              res.file((resFile) => {
+                console.log(resFile);
+                const reader = new FileReader();
+                reader.readAsArrayBuffer(resFile);
+                reader.onloadend = (evt: any) => {
+                  resolve(evt.target.result);
+                };
+                reader.onerror = () => {
+                  reject(reader.error);
+                };
+              });
+            });
+          });
+        });
       }
-    });
+
+      const arrBuff = await getData();
+
+      const td = isUtf8(toBuffer(arrBuff))
+        ? new TextDecoder("utf8")
+        : new TextDecoder("shift-jis");
+      const text = td.decode(arrBuff);
+
+      console.log(text.substr(0, 10));
+
+      // LocalFileSystem.requestFileSystem()
+
+      // try {
+      //   File.readAsArrayBuffer(
+      //     "/com.android.providers.downloadsfdsfdsfsdf.documents/document/",
+      //     "6451 zzz "
+      //   )
+      //     .then((value) => {
+      //       console.log(value);
+      //     })
+      //     .catch((err) => console.error(err));
+      // } catch (exc) {
+      //   console.error(exc);
+      // }
+    })();
 
     const viewer = document.getElementById("ebook-viewer");
     const completionIndicator = document.getElementById("completion-indicator");
@@ -234,15 +266,6 @@ export default defineComponent({
       //     return ab;
       // }
 
-      function toBuffer(ab: ArrayBuffer) {
-        const buf = Buffer.alloc(ab.byteLength);
-        const view = new Uint8Array(ab);
-        for (let i = 0; i < buf.length; ++i) {
-          buf[i] = view[i];
-        }
-        return buf;
-      }
-
       const reader = new FileReader();
 
       reader.onloadend = function () {
@@ -260,7 +283,8 @@ export default defineComponent({
         console.error(ev);
       };
 
-      reader.readAsArrayBuffer(file);
+      console.log(file);
+      reader.readAsArrayBuffer(file as IFile);
 
       // const reader = new FileReader();
       // reader.addEventListener('load', (event) => {
