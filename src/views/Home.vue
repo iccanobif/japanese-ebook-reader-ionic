@@ -13,6 +13,7 @@
         </div>
       </div>
       <div class="button-bar">
+        <button id="openFile" v-on:click="openNewFile()" style="flex-grow: 1">F</button>
         <button id="btnPageUp" style="flex-grow: 1">⇑</button>
         <button id="btnScrollUp" style="flex-grow: 4">↑</button>
         <button id="btnScrollDown" style="flex-grow: 4">↓</button>
@@ -32,6 +33,7 @@
 import { IonContent, IonPage } from "@ionic/vue";
 import { defineComponent } from "vue";
 import { text } from "../haruhi01";
+import { FileChooser } from '@ionic-native/file-chooser';
 
 export default defineComponent({
   name: "Home",
@@ -181,6 +183,13 @@ export default defineComponent({
         { text, offset },
         "https://japanese-dictionary-iframe.herokuapp.com"
       );
+    },
+    openNewFile()
+    {
+      console.log("opening")
+      FileChooser.open().then((res) => {
+        console.log(res)
+      })
     },
   },
 });
