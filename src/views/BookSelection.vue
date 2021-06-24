@@ -9,7 +9,7 @@
             v-bind:key="book.uri"
             v-on:click="bookSelected(book)"
           >
-            {{ book }}
+            {{ book.fileName }}
           </li>
         </ul>
         <button v-on:click="openFile()">Open</button>
@@ -25,6 +25,7 @@
 import { IonContent, IonPage } from "@ionic/vue";
 import { defineComponent } from "vue";
 import { FileChooser } from "@ionic-native/file-chooser";
+import { FilePath } from "@ionic-native/file-path";
 import { BookSettings, Settings } from "../settings";
 
 export default defineComponent({
@@ -47,8 +48,11 @@ export default defineComponent({
   methods: {
     async openFile() {
       const uri = await FileChooser.open();
+
+      const fullPath = await FilePath.resolveNativePath(uri);
+      const fileName = fullPath.substring(fullPath.lastIndexOf('/') + 1);
+
       (window as any).resolveLocalFileSystemURL(uri, (res) => {
-        const fileName = res.name;
         const existingBook = this.settings.books.find((b) => b.uri == uri);
         if (!existingBook) {
           this.settings.books.push({
