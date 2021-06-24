@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from '@ionic/vue-router';
 import { RouteRecordRaw } from 'vue-router';
-import Home from '../views/Home.vue'
+import Reader from '../views/Reader.vue'
 import BookSelection from '../views/BookSelection.vue'
 
 const routes: Array<RouteRecordRaw> = [
@@ -16,7 +16,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/reader',
     name: 'Home',
-    component: Home
+    component: Reader
   }
 ]
 

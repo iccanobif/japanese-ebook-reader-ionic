@@ -2,7 +2,6 @@
 <template>
   <ion-page>
     <ion-content :fullscreen="true">
-      {{ JSON.stringify(settings) }}
       <div class="page">
         <ul class="book-list">
           <li
@@ -14,6 +13,7 @@
           </li>
         </ul>
         <button v-on:click="openFile()">Open</button>
+        <button v-on:click="clearList()">Clear list</button>
       </div>
     </ion-content>
   </ion-page>
@@ -47,13 +47,8 @@ export default defineComponent({
   methods: {
     async openFile() {
       const uri = await FileChooser.open();
-
-
       (window as any).resolveLocalFileSystemURL(uri, (res) => {
         const fileName = res.name;
-        console.log("uri", uri);
-        console.log("fileName", fileName);
-
         const existingBook = this.settings.books.find((b) => b.uri == uri);
         if (!existingBook) {
           this.settings.books.push({
@@ -66,13 +61,16 @@ export default defineComponent({
       });
     },
     bookSelected(book: BookSettings) {
-      console.log(book);
-
       window["selectedBook"] = book;
 
-      console.log(this.$router.currentRoute.value);
       this.$router.push({ path: "/reader" });
     },
+    clearList()
+    {
+      console.log("clear")
+      localStorage.setItem("settings", "");
+      this.settings = { books: [] }
+    }
   },
 });
 </script>

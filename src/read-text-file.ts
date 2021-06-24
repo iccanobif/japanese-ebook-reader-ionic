@@ -1,4 +1,3 @@
-import { FileChooser } from "@ionic-native/file-chooser";
 import isUtf8 from "is-utf8";
 
 function toBuffer(ab: ArrayBuffer)
@@ -14,13 +13,13 @@ function toBuffer(ab: ArrayBuffer)
 
 export function getTextFromFile(url: string): Promise<string>
 {
+    console.log("starting reading", url)
     return new Promise<string>((resolve, reject) =>
     {
         (window as any).resolveLocalFileSystemURL(url, (res) =>
         {
             res.file((resFile) =>
             {
-                console.log(resFile);
                 const reader = new FileReader();
                 reader.readAsArrayBuffer(resFile);
                 reader.onloadend = (evt: any) =>
@@ -32,6 +31,7 @@ export function getTextFromFile(url: string): Promise<string>
                         : new TextDecoder("shift-jis");
                     const text = td.decode(arrBuff);
 
+                    console.log("obtained text data from file")
                     resolve(text)
 
                 };

@@ -1,7 +1,9 @@
-<template>
+z<template>
   <ion-page>
     <ion-content :fullscreen="true">
-      <input type="file" id="file-input" />
+
+{ text }
+
       <div id="ebook-viewer">
         <div v-for="(line, lineIndex) in text.split('\n')" :key="lineIndex">
           <span
@@ -37,72 +39,33 @@
 </template>
 
 <script lang="ts">
+import { getTextFromFile } from "@/read-text-file";
+import { BookSettings } from "@/settings";
 import { IonContent, IonPage } from "@ionic/vue";
 import { defineComponent } from "vue";
-import { text } from "../haruhi01";
-import { FileChooser } from "@ionic-native/file-chooser";
-import {
-  // File,
-  IFile,
-  // FileReader
-} from "@ionic-native/file";
-import isUtf8 from "is-utf8";
-
-function toBuffer(ab: ArrayBuffer) {
-  const buf = Buffer.alloc(ab.byteLength);
-  const view = new Uint8Array(ab);
-  for (let i = 0; i < buf.length; ++i) {
-    buf[i] = view[i];
-  }
-  return buf;
-}
 
 export default defineComponent({
-  name: "Home",
+  name: "Reader",
   components: {
     IonContent,
     IonPage,
   },
   data() {
-    console.log("data function");
-
     return {
-      loadingText: false,
-      // text: "もしかして世のブログって皆金掛かってると思ってたのか",
-      text: text,
+      loadingText: true,
+      text: "読み込み中・・・",
     };
   },
   async mounted() {
-    (async function () {
-      function getData(): Promise<ArrayBuffer> {
-        return new Promise<ArrayBuffer>((resolve, reject) => {
-          FileChooser.open().then((url) => {
-            (window as any).resolveLocalFileSystemURL(url, (res) => {
-              res.file((resFile) => {
-                console.log(resFile);
-                const reader = new FileReader();
-                reader.readAsArrayBuffer(resFile);
-                reader.onloadend = (evt: any) => {
-                  resolve(evt.target.result);
-                };
-                reader.onerror = () => {
-                  reject(reader.error);
-                };
-              });
-            });
-          });
-        });
-      }
+    const book: BookSettings = window["selectedBook"];
 
-      const arrBuff = await getData();
+    if (!book)
+      this.goToBookSelection()
 
-      const td = isUtf8(toBuffer(arrBuff))
-        ? new TextDecoder("utf8")
-        : new TextDecoder("shift-jis");
-      const text = td.decode(arrBuff);
+    this.text = await getTextFromFile(book.uri)
 
-      console.log(text.substr(0, 10));
-    })();
+    this.loadingText = false
+
 
     const viewer = document.getElementById("ebook-viewer");
     const completionIndicator = document.getElementById("completion-indicator");
@@ -212,12 +175,6 @@ export default defineComponent({
   },
   methods: {
     onCharacterClick(text: string, index: number) {
-      console.log(text, index);
-
-      const selection = window.getSelection();
-
-      console.log(selection);
-
       let offset = index;
 
       if (offset > 50) {
@@ -234,65 +191,6 @@ export default defineComponent({
         { text, offset },
         "https://japanese-dictionary-iframe.herokuapp.com"
       );
-    },
-    async openNewFile() {
-      console.log("opening");
-      const element = document.getElementById("file-input") as HTMLInputElement;
-
-      const file = element.files[0];
-
-      if (!file) {
-        alert("seleziona un file");
-        return;
-      }
-
-      console.log(file);
-
-      //   function toArrayBuffer(buf: Buffer) {
-      //     var ab = new ArrayBuffer(buf.length);
-      //     var view = new Uint8Array(ab);
-      //     for (var i = 0; i < buf.length; ++i) {
-      //         view[i] = buf[i];
-      //     }
-      //     return ab;
-      // }
-
-      const reader = new FileReader();
-
-      reader.onloadend = function () {
-        console.log("Successful file read: " + this.result);
-        const arrBuff = this.result as ArrayBuffer;
-
-        const td = isUtf8(toBuffer(arrBuff))
-          ? new TextDecoder("utf8")
-          : new TextDecoder("shift-jis");
-        const text = td.decode(arrBuff);
-
-        console.log(text.substr(0, 10));
-      };
-      reader.onerror = (ev) => {
-        console.error(ev);
-      };
-
-      console.log(file);
-      reader.readAsArrayBuffer(file as IFile);
-
-      // const reader = new FileReader();
-      // reader.addEventListener('load', (event) => {
-      //     // img.src = event.target.result;
-      //     console.log(event)
-      //   });
-      // reader.readAsArrayBuffer(file);
-
-      // const uri = await FileChooser.open();
-
-      // console.log(uri);
-      // console.log(File.dataDirectory);
-      // const entry = await File.resolveLocalFilesystemUrl(uri);
-      // console.log(entry);
-      // const reader = new FileReader()
-      // const string = await File.readAsText(uri, "nomefile.txt")
-      // reader.readAsText(, "utf8")
     },
     goToBookSelection() {
       this.$router.push({ path: "/books" });

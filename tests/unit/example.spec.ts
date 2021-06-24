@@ -1,9 +1,9 @@
 import { mount } from '@vue/test-utils'
-import Home from '@/views/Home.vue'
+import Reader from '@/views/Reader.vue'
 
 describe('Home.vue', () => {
   it('renders home vue', () => {
-    const wrapper = mount(Home)
+    const wrapper = mount(Reader)
     expect(wrapper.text()).toMatch('Ready to create an app?')
   })
 })
