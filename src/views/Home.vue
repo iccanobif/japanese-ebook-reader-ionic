@@ -14,8 +14,12 @@
         </div>
       </div>
       <div class="button-bar">
-        <button id="openFile" v-on:click="openNewFile()" style="flex-grow: 1">
-          A
+        <button
+          id="openFile"
+          v-on:click="goToBookSelection()"
+          style="flex-grow: 1"
+        >
+          B
         </button>
         <button id="btnPageUp" style="flex-grow: 1">⇑</button>
         <button id="btnScrollUp" style="flex-grow: 4">↑</button>
@@ -38,7 +42,7 @@ import { defineComponent } from "vue";
 import { text } from "../haruhi01";
 import { FileChooser } from "@ionic-native/file-chooser";
 import {
-  File,
+  // File,
   IFile,
   // FileReader
 } from "@ionic-native/file";
@@ -60,6 +64,8 @@ export default defineComponent({
     IonPage,
   },
   data() {
+    console.log("data function");
+
     return {
       loadingText: false,
       // text: "もしかして世のブログって皆金掛かってると思ってたのか",
@@ -96,21 +102,6 @@ export default defineComponent({
       const text = td.decode(arrBuff);
 
       console.log(text.substr(0, 10));
-
-      // LocalFileSystem.requestFileSystem()
-
-      // try {
-      //   File.readAsArrayBuffer(
-      //     "/com.android.providers.downloadsfdsfdsfsdf.documents/document/",
-      //     "6451 zzz "
-      //   )
-      //     .then((value) => {
-      //       console.log(value);
-      //     })
-      //     .catch((err) => console.error(err));
-      // } catch (exc) {
-      //   console.error(exc);
-      // }
     })();
 
     const viewer = document.getElementById("ebook-viewer");
@@ -303,6 +294,9 @@ export default defineComponent({
       // const string = await File.readAsText(uri, "nomefile.txt")
       // reader.readAsText(, "utf8")
     },
+    goToBookSelection() {
+      this.$router.push({ path: "/books" });
+    },
   },
 });
 </script>
@@ -315,9 +309,6 @@ export default defineComponent({
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  background-color: #000000;
-  color: white;
 
   white-space: pre-wrap;
   overflow-wrap: break-word;
