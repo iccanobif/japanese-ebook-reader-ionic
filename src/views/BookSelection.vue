@@ -26,7 +26,7 @@ import { IonContent, IonPage } from "@ionic/vue";
 import { defineComponent } from "vue";
 import { FileChooser } from "@ionic-native/file-chooser";
 import { FilePath } from "@ionic-native/file-path";
-import { BookSettings, Settings } from "../settings";
+import { BookSettings, getPersistedSettings, persistSettings } from "@/settings";
 
 export default defineComponent({
   name: "BookSelection",
@@ -35,14 +35,8 @@ export default defineComponent({
     IonPage,
   },
   data() {
-    let settings = JSON.parse(
-      window.localStorage.getItem("settings")
-    ) as Settings;
-
-    if (!settings) settings = { books: [] };
-
     return {
-      settings,
+      settings: getPersistedSettings(),
     };
   },
   methods: {
@@ -50,31 +44,28 @@ export default defineComponent({
       const uri = await FileChooser.open();
 
       const fullPath = await FilePath.resolveNativePath(uri);
-      const fileName = fullPath.substring(fullPath.lastIndexOf('/') + 1);
+      const fileName = fullPath.substring(fullPath.lastIndexOf("/") + 1);
 
-      (window as any).resolveLocalFileSystemURL(uri, (res) => {
-        const existingBook = this.settings.books.find((b) => b.uri == uri);
-        if (!existingBook) {
-          this.settings.books.push({
-            uri: uri,
-            fileName,
-            scrollTop: 0,
-          });
-          localStorage.setItem("settings", JSON.stringify(this.settings));
-        }
-      });
+      const existingBook = this.settings.books.find((b) => b.uri == uri);
+      if (!existingBook) {
+        this.settings.books.push({
+          uri: uri,
+          fileName,
+          scrollTop: 0,
+        });
+        persistSettings(this.settings);
+      }
     },
     bookSelected(book: BookSettings) {
       window["selectedBook"] = book;
 
       this.$router.push({ path: "/reader" });
     },
-    clearList()
-    {
-      console.log("clearing book list")
-      localStorage.setItem("settings", "");
-      this.settings = { books: [] }
-    }
+    clearList() {
+      console.log("clearing book list");
+      this.settings = { books: [] };
+      persistSettings(this.settings);
+    },
   },
 });
 </script>

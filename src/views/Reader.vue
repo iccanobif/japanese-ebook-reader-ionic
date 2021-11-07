@@ -53,15 +53,14 @@ export default defineComponent({
     return {
       loadingText: true,
       text: "読み込み中・・・",
+      book: window["selectedBook"] as BookSettings,
     };
   },
   async mounted() {
-    const book: BookSettings = window["selectedBook"];
-
-    if (!book) this.goToBookSelection();
+    if (!this.book) this.goToBookSelection();
 
     try {
-      this.text = await getTextFromFile(book.uri);
+      this.text = await getTextFromFile(this.book.uri);
     } catch (exc) {
       console.error(exc)
       this.text = "an exception occurred"
