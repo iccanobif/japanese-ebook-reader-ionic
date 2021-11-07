@@ -5,9 +5,9 @@ export interface Settings
 
 export interface BookSettings
 {
-    uri: string,
-    fileName: string,
-    scrollTop: number,
+    uri: string;
+    fileName: string;
+    scrollTop: number;
 }
 
 let cachedSettings = null
