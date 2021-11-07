@@ -1,0 +1,1 @@
+- understand why in some cases files are not loaded (reproduce by adding a file - opening - closing application - opening again - the file that was already in the list can't be opened anymore)

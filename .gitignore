@@ -1,6 +1,10 @@
 # Specifies intentionally untracked files to ignore when using Git
 # http://git-scm.com/docs/gitignore
 
+# i don't understand why this file appears while running ionic and disappears when it stops. ignoring just in case
+android/app/src/main/AndroidManifest.xml.orig
+
+
 *~
 *.sw[mnpcod]
 .tmp
@@ -29,3 +33,4 @@ npm-debug.log*
 /platforms
 /plugins
 /www
+
