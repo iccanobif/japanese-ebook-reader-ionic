@@ -42,6 +42,9 @@ export function persistSettings(settings: Settings)
 export function persistBookSettings(newBookSettings: BookSettings)
 {
     const settings = getPersistedSettings()
+    
     settings.books = settings.books
         .map(b => b.fileName == newBookSettings.fileName ? newBookSettings : b)
+
+    persistSettings(settings)
 }

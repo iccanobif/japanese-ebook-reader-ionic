@@ -14,7 +14,7 @@ const routes: Array<RouteRecordRaw> = [
     component: BookSelection
   },
   {
-    path: '/reader',
+    path: '/reader/:bookIndex',
     name: 'Home',
     component: Reader
   }

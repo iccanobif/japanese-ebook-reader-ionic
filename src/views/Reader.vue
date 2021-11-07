@@ -3,7 +3,7 @@ z<template>
     <ion-content :fullscreen="true">
       { text }
 
-      <div id="ebook-viewer">
+      <div id="ebook-viewer" ref="viewer">
         <div v-for="(line, lineIndex) in text.split('\n')" :key="lineIndex">
           <span
             v-for="(character, characterIndex) in line.split('')"
@@ -22,12 +22,12 @@ z<template>
         >
           B
         </button>
-        <button id="btnPageUp" style="flex-grow: 1">⇑</button>
-        <button id="btnScrollUp" style="flex-grow: 4">↑</button>
-        <button id="btnScrollDown" style="flex-grow: 4">↓</button>
-        <button id="btnPageDown" style="flex-grow: 1">⇓</button>
+        <button id="btnPageUp" ref="btnPageUp" style="flex-grow: 1">⇑</button>
+        <button id="btnScrollUp" ref="btnScrollUp" style="flex-grow: 4">↑</button>
+        <button id="btnScrollDown" ref="btnScrollDown" style="flex-grow: 4">↓</button>
+        <button id="btnPageDown" ref="btnPageDown" style="flex-grow: 1">⇓</button>
       </div>
-      <div id="completion-indicator"></div>
+      <div id="completion-indicator" ref="completionIndicator"></div>
       <iframe
         id="integrated-japanese-dictionary-popup"
         src="https://japanese-dictionary-iframe.herokuapp.com"
@@ -39,9 +39,15 @@ z<template>
 
 <script lang="ts">
 import { getTextFromFile } from "@/read-text-file";
-import { BookSettings } from "@/settings";
+import {
+  BookSettings,
+  getPersistedSettings,
+  persistBookSettings,
+} from "@/settings";
 import { IonContent, IonPage } from "@ionic/vue";
 import { defineComponent } from "vue";
+
+const LOADING_MESSAGE = "読み込み中・・・"
 
 export default defineComponent({
   name: "Reader",
@@ -51,131 +57,160 @@ export default defineComponent({
   },
   data() {
     return {
-      loadingText: true,
-      text: "読み込み中・・・",
-      book: window["selectedBook"] as BookSettings,
+      text: LOADING_MESSAGE,
+      book: null as BookSettings,
+      scrollSpeed: 0,
+      scrollFramesToSkip: 3,
+      setIntervalHandle: null,
     };
   },
-  async mounted() {
-    if (!this.book) this.goToBookSelection();
-
-    try {
-      this.text = await getTextFromFile(this.book.uri);
-    } catch (exc) {
-      console.error(exc)
-      this.text = "an exception occurred"
-    }
-    console.log("finished reading");
-
-    this.loadingText = false;
-
-    const viewer = document.getElementById("ebook-viewer");
-    const completionIndicator = document.getElementById("completion-indicator");
+  mounted() {
     const btnPageUp = document.getElementById("btnPageUp");
     const btnScrollUp = document.getElementById("btnScrollUp");
     const btnScrollDown = document.getElementById("btnScrollDown");
     const btnPageDown = document.getElementById("btnPageDown");
 
-    let scrollSpeed = 0;
-    let scrollFramesToSkip = 3;
+    btnPageUp.addEventListener("touchstart", this.pageUp);
+    btnPageUp.addEventListener("mousedown", this.pageUp);
+    btnPageUp.addEventListener("touchend", this.stopScrolling);
+    btnPageUp.addEventListener("mouseup", this.stopScrolling);
 
-    function scroll(amount: number) {
-      viewer.scrollBy({ top: amount, left: 0 });
-      window.localStorage.setItem("scroll-top", viewer.scrollTop.toString());
-    }
+    btnScrollUp.addEventListener("touchstart", this.scrollUp);
+    btnScrollUp.addEventListener("mousedown", this.scrollUp);
+    btnScrollUp.addEventListener("touchend", this.stopScrolling);
+    btnScrollUp.addEventListener("mouseup", this.stopScrolling);
 
-    const pageUp = (ev) => {
-      ev.preventDefault();
-      scroll((scrollSpeed = -200));
-    };
-    const scrollUp = (ev) => {
-      ev.preventDefault();
-      scroll((scrollSpeed = -20));
-    };
-    const scrollDown = (ev) => {
-      ev.preventDefault();
-      scroll((scrollSpeed = 20));
-    };
-    const pageDown = (ev) => {
-      ev.preventDefault();
-      scroll((scrollSpeed = 200));
-    };
-    const stopScrolling = (ev) => {
-      ev.preventDefault();
-      scrollSpeed = 0;
-      scrollFramesToSkip = 3;
-    };
+    btnScrollDown.addEventListener("touchstart", this.scrollDown);
+    btnScrollDown.addEventListener("mousedown", this.scrollDown);
+    btnScrollDown.addEventListener("touchend", this.stopScrolling);
+    btnScrollDown.addEventListener("mouseup", this.stopScrolling);
 
-    btnPageUp.addEventListener("touchstart", pageUp);
-    btnPageUp.addEventListener("mousedown", pageUp);
-    btnPageUp.addEventListener("touchend", stopScrolling);
-    btnPageUp.addEventListener("mouseup", stopScrolling);
-
-    btnScrollUp.addEventListener("touchstart", scrollUp);
-    btnScrollUp.addEventListener("mousedown", scrollUp);
-    btnScrollUp.addEventListener("touchend", stopScrolling);
-    btnScrollUp.addEventListener("mouseup", stopScrolling);
-
-    btnScrollDown.addEventListener("touchstart", scrollDown);
-    btnScrollDown.addEventListener("mousedown", scrollDown);
-    btnScrollDown.addEventListener("touchend", stopScrolling);
-    btnScrollDown.addEventListener("mouseup", stopScrolling);
-
-    btnPageDown.addEventListener("touchstart", pageDown);
-    btnPageDown.addEventListener("mousedown", pageDown);
-    btnPageDown.addEventListener("touchend", stopScrolling);
-    btnPageDown.addEventListener("mouseup", stopScrolling);
+    btnPageDown.addEventListener("touchstart", this.pageDown);
+    btnPageDown.addEventListener("mousedown", this.pageDown);
+    btnPageDown.addEventListener("touchend", this.stopScrolling);
+    btnPageDown.addEventListener("mouseup", this.stopScrolling);
 
     window.addEventListener("keydown", (ev) => {
       if (ev.repeat) return;
       switch (ev.key) {
         case "ArrowDown":
-          scrollDown(ev);
+          this.scrollDown(ev);
           break;
         case "ArrowUp":
-          scrollUp(ev);
+          this.scrollUp(ev);
           break;
         case "PageDown":
-          pageDown(ev);
+          this.pageDown(ev);
           break;
         case "PageUp":
-          pageUp(ev);
+          this.pageUp(ev);
           break;
       }
     });
 
     window.addEventListener("keyup", (ev) => {
-      stopScrolling(ev);
+      this.stopScrolling(ev);
     });
 
-    function updateCompletionIndictator() {
+    this.setIntervalHandle = setInterval(() => {
+      this.handleScrollMovement()
+    }, 50);
+  },
+  beforeUnmount() {
+    clearInterval(this.setIntervalHandle)
+  },
+  created () {
+    // fetch the data when the view is created and the data is
+    // already being observed
+    this.loadBook()
+  },
+  watch: {
+    // call again the method if the route changes
+    '$route': 'loadBook'
+  },
+  methods: {
+    async loadBook() {
+      console.log("loadBook");
+
+      const bookIndex = this.$route.params.bookIndex as string
+      if (bookIndex === undefined)
+      // loadBook() was called by the $route watch when navigating out of the component
+        return 
+
+      this.text = LOADING_MESSAGE
+
+      const settings = getPersistedSettings();
+      this.book = settings.books[Number.parseInt(bookIndex)];
+
+      console.log("reader mounted");
+      if (!this.book) this.goToBookSelection();
+
+      try {
+        this.text = await getTextFromFile(this.book.uri);
+      } catch (exc) {
+        console.error(exc);
+        this.text = "an exception occurred";
+      }
+      console.log("finished reading");
+    },
+    handleScrollMovement() {
+      if (!this.book)
+        return
+
+      const viewer = this.$refs.viewer as HTMLDivElement
+
+      // If the app has just been opened but the saved scroll position still hasn't been applied, apply it.
+      if (this.book.scrollTop && !viewer.scrollTop) {
+        viewer.scrollTo({ top: Number(this.book.scrollTop), left: 0 });
+        this.updateCompletionIndictator();
+      }
+
+      if (this.scrollSpeed != 0) {
+        if (this.scrollFramesToSkip > 0) this.scrollFramesToSkip--;
+        else {
+          this.performScrolling(this.scrollSpeed);
+          this.updateCompletionIndictator();
+        }
+      }
+    },
+    performScrolling(amount: number) {
+      const viewer = this.$refs.viewer as HTMLDivElement
+      viewer.scrollBy({ top: amount, left: 0 });
+      this.book.scrollTop = viewer.scrollTop;
+
+      persistBookSettings(this.book);
+    },
+    pageUp(ev) {
+      ev.preventDefault();
+      this.performScrolling((this.scrollSpeed = -200));
+    },
+    scrollUp(ev) {
+      ev.preventDefault();
+      this.performScrolling((this.scrollSpeed = -20));
+    },
+    scrollDown(ev) {
+      ev.preventDefault();
+      this.performScrolling((this.scrollSpeed = 20));
+    },
+    pageDown(ev) {
+      ev.preventDefault();
+      this.performScrolling((this.scrollSpeed = 200));
+    },
+    stopScrolling(ev) {
+      ev.preventDefault();
+      this.scrollSpeed = 0;
+      this.scrollFramesToSkip = 3;
+    },
+    updateCompletionIndictator() {
+      const viewer = this.$refs.viewer as HTMLDivElement
+      const completionIndicator = this.$refs.completionIndicator as HTMLDivElement
+
       if (!viewer.scrollHeight) completionIndicator.innerText = "0%";
       else
         completionIndicator.innerText =
           Math.round((viewer.scrollTop / viewer.scrollHeight) * 1000) / 10 +
           "%";
-    }
-
-    setInterval(() => {
-      const scrollPositionFromStorage =
-        window.localStorage.getItem("scroll-top");
-
-      // If the app has just been opened but the saved scroll position still hasn't been applied, apply it.
-      if (scrollPositionFromStorage && !viewer.scrollTop) {
-        viewer.scrollTo({ top: Number(scrollPositionFromStorage), left: 0 });
-        updateCompletionIndictator();
-      }
-
-      if (scrollSpeed != 0) {
-        if (scrollFramesToSkip > 0) scrollFramesToSkip--;
-        else {
-          scroll(scrollSpeed);
-          updateCompletionIndictator();
-        }
-      }
-    }, 50);
-  },
-  methods: {
+    },
     onCharacterClick(text: string, index: number) {
       let offset = index;
 

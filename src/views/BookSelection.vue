@@ -5,9 +5,9 @@
       <div class="page">
         <ul class="book-list">
           <li
-            v-for="book in settings?.books"
+            v-for="(book, index) in settings?.books"
             v-bind:key="book.uri"
-            v-on:click="bookSelected(book)"
+            v-on:click="bookSelected(index)"
           >
             {{ book.fileName }}
           </li>
@@ -56,10 +56,10 @@ export default defineComponent({
         persistSettings(this.settings);
       }
     },
-    bookSelected(book: BookSettings) {
-      window["selectedBook"] = book;
+    bookSelected(index: number) {
+      console.log("bookSelected, index:", index)
 
-      this.$router.push({ path: "/reader" });
+      this.$router.push({ path: "/reader/" + index });
     },
     clearList() {
       console.log("clearing book list");
