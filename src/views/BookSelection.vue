@@ -71,7 +71,7 @@ export default defineComponent({
     },
     clearList()
     {
-      console.log("clear")
+      console.log("clearing book list")
       localStorage.setItem("settings", "");
       this.settings = { books: [] }
     }

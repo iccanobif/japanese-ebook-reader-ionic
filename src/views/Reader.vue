@@ -1,8 +1,7 @@
 z<template>
   <ion-page>
     <ion-content :fullscreen="true">
-
-{ text }
+      { text }
 
       <div id="ebook-viewer">
         <div v-for="(line, lineIndex) in text.split('\n')" :key="lineIndex">
@@ -59,13 +58,17 @@ export default defineComponent({
   async mounted() {
     const book: BookSettings = window["selectedBook"];
 
-    if (!book)
-      this.goToBookSelection()
+    if (!book) this.goToBookSelection();
 
-    this.text = await getTextFromFile(book.uri)
+    try {
+      this.text = await getTextFromFile(book.uri);
+    } catch (exc) {
+      console.error(exc)
+      this.text = "an exception occurred"
+    }
+    console.log("finished reading");
 
-    this.loadingText = false
-
+    this.loadingText = false;
 
     const viewer = document.getElementById("ebook-viewer");
     const completionIndicator = document.getElementById("completion-indicator");

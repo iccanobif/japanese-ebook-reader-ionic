@@ -16,27 +16,42 @@ export function getTextFromFile(url: string): Promise<string>
     console.log("starting reading", url)
     return new Promise<string>((resolve, reject) =>
     {
-        (window as any).resolveLocalFileSystemURL(url, (res) =>
+        (window as any).resolveLocalFileSystemURL(url, (res, err) =>
         {
-            res.file((resFile) =>
+            console.log(res)
+            if (err)
             {
+                reject(err)
+                return
+            }
+
+            res.file((resFile, err) =>
+            {
+                console.log(resFile)
+                if (err)
+                {
+                    reject(err)
+                    return
+                }
+
                 const reader = new FileReader();
                 reader.readAsArrayBuffer(resFile);
                 reader.onloadend = (evt: any) =>
                 {
+                    console.log(evt)
                     const arrBuff: ArrayBuffer = evt.target.result;
 
-                    const td = isUtf8(toBuffer(arrBuff))
+                    const textDecoder = isUtf8(toBuffer(arrBuff))
                         ? new TextDecoder("utf8")
                         : new TextDecoder("shift-jis");
-                    const text = td.decode(arrBuff);
+                    const text = textDecoder.decode(arrBuff);
 
                     console.log("obtained text data from file")
                     resolve(text)
-
                 };
                 reader.onerror = () =>
                 {
+                    console.error(reader.error)
                     reject(reader.error);
                 };
             });
